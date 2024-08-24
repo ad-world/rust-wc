@@ -1,37 +1,17 @@
-use std::{env, fs::{self, File}, io::{BufRead, BufReader}, process::exit};
+use std::{env, fs::{self, File}, process::exit};
 
 fn main() {
     let args: Vec<String> = env::args().collect();
-    if args.len() < 2 {
-        println!("Usage: rust-wc -[c|l|w|m] <filename>");
-        return;
-    }
+
+    let filename;
 
     if !is_flag(args[1].clone()) {
-        // default option, file is first argument
-
-        let filename = &args[1];
-        let file = match File::open(filename) {
-            Ok(file) => file,
-            Err(_) => {
-                println!("Error: File {} not found", filename);
-                exit(1);
-            }
-        };
-
-        let content = fs::read_to_string(filename).unwrap();
-
-        println!("{} {} {} {}", get_bytes(&content), get_lines(&content), get_words(&content), filename);
-        exit(0);
+        filename = &args[1];       
+    } else {
+        filename = &args[2];
     }
 
-    let flag = get_flag(args[1].clone());
-    if flag.is_err() {
-        exit(1);
-    }
-
-    let filename = &args[2];
-    let file = match File::open(filename) {
+    match File::open(filename) {
         Ok(file) => file,
         Err(_) => {
             println!("Error: File {} not found", filename);
@@ -39,7 +19,18 @@ fn main() {
         }
     };
 
+
     let filecontent = fs::read_to_string(filename).unwrap();
+
+    if !is_flag(args[1].clone()) {
+        println!("{} {} {} {}", get_bytes(&filecontent), get_lines(&filecontent), get_words(&filecontent), filename);
+        exit(0);
+    }  
+
+    let flag = get_flag(args[1].clone());
+    if flag.is_err() {
+        exit(1);
+    }
 
     if flag.unwrap() == 'c' {
         let bytes = get_bytes(&filecontent);
@@ -51,7 +42,7 @@ fn main() {
         let words = get_words(&filecontent);
         println!("{} {}", filename, words);
     } else if flag.unwrap() == 'm' {
-        let chars = get_chars(filename);
+        let chars = get_chars(&filecontent);
         println!("{} {}", filename, chars);
     }
 
